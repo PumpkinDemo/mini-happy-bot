@@ -1,6 +1,6 @@
 # Happy Bot
 
-A qq bot that is committed to bring happiness to group friends.
+A QQ bot that is committed to bring happiness to group friends.
 
 developed with nonebot v1.9
 
@@ -14,4 +14,4 @@ functions:
 
 notes:
 + the real save path is `xxx_ABS_PATH`
-+ the relative path under the current directory is just symlinks
++ the resource directories under the current path are just symlinks
