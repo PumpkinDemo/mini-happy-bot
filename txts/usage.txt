@@ -1,0 +1,6 @@
+command supported:
+    setu
+    saying
+    sayingof
+    sese
+    来点xx
