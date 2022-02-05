@@ -13,5 +13,5 @@ functions:
 + receive/send sayings by specifying id/keyword
 
 notes:
-+ the real save path is xxx_ABS_PATH
++ the real save path is `xxx_ABS_PATH`
 + the relative path under the current directory is just symlinks

@@ -1,5 +1,8 @@
 无害小bot version 0.2
 
+Developed with nonebot
+项目地址: github.com/PumpkinDemo/mini-happy-bot
+
 监护人(master): DYH
 图库: sese.pumpk1n.com/setu/index
 All copyright reserved.
