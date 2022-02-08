@@ -10,6 +10,10 @@ from nonebot import MessageSegment
 SAYING_DIR = './sayings'
 SAYING_ABS_PATH = '/data/sayings'
 
+alias = {
+    'ccgg': 'cc',
+}
+
 
 def get_file_contents(file):
     if not os.path.exists(file):
@@ -51,6 +55,8 @@ def get_random_saying_of(name):
 
 
 def has_saying(name:str) -> bool:
+    if name in alias.keys():
+        name = alias[name]
     if get_random_saying_of(name):
         return True
     return False
@@ -88,9 +94,11 @@ async def sayingof(session:CommandSession):
         return
     sayings = session.current_arg_images
     if not len(sayings):
+        if name in alias.keys():
+            name = alias[name]
         saying = get_random_saying_of(name)
         if not saying:
-            msg = f'no saying for {name} currently'
+            msg = f'no saying labeled for {name} currently'
         else:
             msg = MessageSegment.image(saying)
     else:
@@ -100,7 +108,7 @@ async def sayingof(session:CommandSession):
     await session.send(msg)
 
 
-@on_command('spsaying')
+# @on_command('spsaying')
 async def special(session:CommandSession):
     try:
         key = int(session.current_arg_text.strip())
@@ -115,10 +123,3 @@ async def special(session:CommandSession):
     except Exception as e:
         print(e)
         return
-
-
-# @on_natural_language(keywords={})
-async def cc_saying(session:NLPSession):
-    key = session.msg_text.strip()
-    return IntentCommand(80.0, 'spsaying', current_arg=key)
-

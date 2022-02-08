@@ -1,6 +1,6 @@
 command supported:
     setu
     saying
-    sayingof
+    sayingof xx
     sese
     来点xx

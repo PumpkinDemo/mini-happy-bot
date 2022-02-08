@@ -1,9 +1,8 @@
-2022-02-05:
+2022-02-07:
 
-new commands: 
-    usage, changelog
+small update:
+    command optimization
 
-setu lib update: 
-    new style
-    lazy loading
-    http -> https (more safe!)
+in building:
+    setuof
+    image labeling
