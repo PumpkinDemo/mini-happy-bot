@@ -2,9 +2,8 @@ import requests
 import datetime
 import random
 import os
-from nonebot import on_command, CommandSession
-from nonebot import on_natural_language, NLPSession, IntentCommand
 from nonebot import MessageSegment
+from nonebot import on_command, CommandSession
 
 
 SAYING_DIR = './sayings'
@@ -12,7 +11,13 @@ SAYING_ABS_PATH = '/data/sayings'
 
 alias = {
     'ccgg': 'cc',
+    'xyjj': 'xy',
+    '雪妖': 'xy',
 }
+
+
+def saying_alias_handle(name):
+    return alias.get(name, name)
 
 
 def get_file_contents(file):
@@ -23,43 +28,25 @@ def get_file_contents(file):
     return content
 
 
-def save_image(path, image_url):
-    r = requests.get(image_url)
-    ext = r.headers['Content-Type'].split('image/')[-1]
-    t = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S_%f')
-    with open(f'{path}/{t}.{ext}', 'wb') as f:
-        f.write(r.content)
-
-
-def save_saying_of(name, img_url):
+def save_saying(img_url, name=None):
     r = requests.get(img_url)
     ext = r.headers['Content-Type'].split('image/')[-1]
     t = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S_%f')
-    with open(f'{SAYING_DIR}/{name}_{t}.{ext}', 'wb') as f:
+    img_name = f'{t}.{ext}'
+    if name:
+        img_name = f'{name}_' + img_name
+    with open(f'{SAYING_DIR}/{img_name}', 'wb') as f:
         f.write(r.content)
 
 
-def get_random_saying():
-    files = os.listdir('./sayings')
-    img = random.choice(files)
-    return f'file://{SAYING_ABS_PATH}/{img}'
-
-
-def get_random_saying_of(name):
-    files = os.listdir('./sayings')
-    files = [f for f in files if f.startswith(name+'_')]
+def get_random_saying(name=None):
+    files = os.listdir(SAYING_ABS_PATH)
+    if name:
+        files = [f for f in files if f.startswith(name+'_')]
     if not len(files):
         return None
     img = random.choice(files)
     return f'file://{SAYING_ABS_PATH}/{img}'
-
-
-def has_saying(name:str) -> bool:
-    if name in alias.keys():
-        name = alias[name]
-    if get_random_saying_of(name):
-        return True
-    return False
 
 
 def name_check(name:str) -> bool:
@@ -77,8 +64,8 @@ async def saying(session:CommandSession):
         saying = get_random_saying()
         msg = MessageSegment.image(saying)
     else:
-        for s in sayings:
-            save_image(SAYING_DIR, s)
+        for url in sayings:
+            save_saying(url)
         msg = 'saying received'
     await session.send(msg)
 
@@ -92,20 +79,19 @@ async def sayingof(session:CommandSession):
     if not name_check(name):
         await session.send('invaliad name')
         return
+        
     sayings = session.current_arg_images
+    real_name = saying_alias_handle(name)
     if not len(sayings):
-        if name in alias.keys():
-            name = alias[name]
-        saying = get_random_saying_of(name)
-        if not saying:
-            msg = f'no saying labeled for {name} currently'
-        else:
-            msg = MessageSegment.image(saying)
+        saying = get_random_saying(real_name)
+        errmsg = f'no saying labeled for {name} currently'
+        msg = MessageSegment.image(saying) if saying else errmsg
     else:
-        for s in sayings:
-            save_saying_of(name, s)
+        for url in sayings:
+            save_saying(url, real_name)
         msg = f'saying of {name} received'
     await session.send(msg)
+
 
 
 # @on_command('spsaying')

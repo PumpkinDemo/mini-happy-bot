@@ -1,8 +1,11 @@
-2022-02-07:
+2022-02-15:
 
-small update:
-    command optimization
+new command:
+    comic
+
+optimization:
+    code opt
 
 in building:
-    setuof
-    image labeling
+    multiple tags
+    image deduplication

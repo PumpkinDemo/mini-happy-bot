@@ -8,8 +8,8 @@ import config
 import os
 import requests
 
-from plugins.saying import has_saying
-from plugins.setu import has_setu
+from plugins.saying import get_random_saying, saying_alias_handle
+from plugins.setu import get_random_setu, setu_alias_handle
 
 # config = Config()
 
@@ -66,6 +66,11 @@ async def sese(session:CommandSession):
     await session.send('不可以色色～')
 
 
+@on_natural_language(keywords={'色色'}, only_to_me=False)
+async def sese_nlp(session:NLPSession):
+    return IntentCommand(100*random(), 'sese')
+
+
 @on_natural_language(keywords={'来点'}, only_to_me=False)
 async def some(session:NLPSession):
     msg = session.msg_text.strip()
@@ -73,24 +78,36 @@ async def some(session:NLPSession):
         return
     key = msg.split('来点')[1]
     if not key:
+        await session.send('来点啥?')
+        return
+    if key in ['色色']:
         return
     if key in ['涩图', '色图', 'setu']:
         return IntentCommand(80.0, 'setu')
-    if key in ['语录']:
+    if key in ['语录', 'saying']:
         return IntentCommand(80.0, 'saying')
-    if has_saying(key):
-        return IntentCommand(80.0, 'sayingof', current_arg=key)
-    if has_setu(key):
-        return IntentCommand(80.0, 'setuof', current_arg=key)
+    if key in ['comic', '漫画']:
+        return IntentCommand(80.0, 'comic')
+    
+    saying = get_random_saying(saying_alias_handle(key))
+    if saying:
+        await session.send(MessageSegment.image(saying))
+        return
+    
+    setu = get_random_setu(setu_alias_handle(key))
+    if setu:
+        await session.send(MessageSegment.image(setu))
+        return
+    
     r = random()
     res = 'o(╯□╰)o'
     if r < 0.2:
         res = f'现在还没有"{key}"的涩图/语录哦～'
-        # res = f'现在还没有"{key}"的语录哦～'
     elif r < 0.4:
         res = f'unknown keyword "{key}", 开摆～'
     await session.send(res)
     
+
 
 # @on_command('bb', only_to_me=False)
 async def label(session:CommandSession):
@@ -116,4 +133,5 @@ if __name__ == '__main__':
     # nonebot.load_builtin_plugins()
     nonebot.load_plugin('plugins.saying')
     nonebot.load_plugin('plugins.setu')
+    nonebot.load_plugin('plugins.comic')
     nonebot.run(host=HOST, port=PORT)

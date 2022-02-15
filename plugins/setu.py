@@ -1,67 +1,60 @@
+from audioop import alaw2lin
 import os
 import random
 from nonebot import CommandSession, on_command
 from nonebot import MessageSegment
 import requests
 import datetime
+import yaml
+from hashlib import md5
 
 
 SETU_DIR = './setu'
 SETU_ABS_PATH = '/data/setu'
 SETU_ALIAS_PATH = './setu_alias.txt'
 
+alias = {}
+alias_file_md5 = ''
 
-aliases = {
-    '甘雨': 'ganyu',
-    '申鹤': 'shenhe',
-    '神里': 'ayaka',
-}
 
 def get_setu_alias():
-    file = './setu_alias.txt'
-    if not os.path.exists(file):
-        os.system(f'touch {file}')
-    with open(file, 'r') as f:
-        content = f.read()
-    lines = content.splitlines()
-    res = {}
-    for ln in lines:
-        tup = ln.strip().split()
-        if len(tup) != 2:
-            continue
-        res[tup[0]] = tup[1]
-    return res
+    alias_path = './setu_alias.yml'
+    if not os.path.exists(alias_path):
+        os.system(f'touch {alias_path}')
+    with open(alias_path, 'rb') as f:
+        h = md5(f.read()).hexdigest()
+    if h == alias_file_md5:
+        return
+    globals()['alias_file_md5'] = h
+    alias.clear()
+    with open(alias_path, 'r') as f:
+        data = yaml.safe_load(f)
+        for k in data.keys():
+            for v in data[k]:
+                alias[v] = k
+    print('alias update')
+    return
 
 
-def save_image(path, image_url):
-    r = requests.get(image_url)
-    ext = r.headers['Content-Type'].split('image/')[-1]
-    t = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S_%f')
-    with open(f'{path}/{t}.{ext}', 'wb') as f:
-        f.write(r.content)
-
-
-def get_random_setu():
+def get_random_setu(name=None):
     files = os.listdir(SETU_DIR)
-    img = random.choice(files)
-    return f'file://{SETU_ABS_PATH}/{img}'
-
-
-def save_setu_of(name, img_url):
-    r = requests.get(img_url)
-    ext = r.headers['Content-Type'].split('image/')[-1]
-    t = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S_%f')
-    with open(f'{SETU_DIR}/{name}_{t}.{ext}', 'wb') as f:
-        f.write(r.content)
-
-
-def get_random_setu_of(name):
-    files = os.listdir(SETU_DIR)
-    files = [f for f in files if f.startswith(name+'_')]
+    if name:
+        files = list(filter(lambda f:f.startswith(name+'_'), files))
     if not len(files):
         return None
     img = random.choice(files)
     return f'file://{SETU_ABS_PATH}/{img}'
+
+
+def save_setu(img_url, name=None):
+    r = requests.get(img_url)
+    ext = r.headers['Content-Type'].split('image/')[-1]
+    t = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S_%f')
+    setu_name = f'{t}.{ext}'
+    if name:
+        setu_name = f'{name}_' + setu_name
+    with open(f'{SETU_DIR}/{setu_name}', 'wb') as f:
+        f.write(r.content)
 
 
 def name_check(name:str) -> bool:
@@ -72,13 +65,9 @@ def name_check(name:str) -> bool:
     return True
 
 
-def has_setu(name:str) -> bool:
-    alias = get_setu_alias()
-    if name in alias.keys():
-        name = alias[name]
-    if get_random_setu_of(name):
-        return True
-    return False
+def setu_alias_handle(name:str):
+    get_setu_alias()
+    return alias.get(name, name)
 
 
 @on_command('setupost', only_to_me=False)
@@ -87,9 +76,8 @@ async def setupost(session:CommandSession):
     if not len(images):
         await session.send('no image')
         return
-    for img in images:
-        print(img)
-        save_image(img)
+    for img_url in images:
+        save_setu(img_url)
     await session.send('saved')
 
 
@@ -107,8 +95,8 @@ async def setu(session:CommandSession):
         img = get_random_setu()
         msg = MessageSegment.image(img)
     else:
-        for img in images:
-            save_image(SETU_DIR, img)
+        for url in images:
+            save_setu(url)
         msg = 'setu received'
     await session.send(msg)
 
@@ -123,19 +111,14 @@ async def setuof(session:CommandSession):
         await session.send('invaliad name')
         return
     
-    alias = get_setu_alias()
-    if name in alias.keys():
-        name = alias[name]
     setus = session.current_arg_images
+    real_name = setu_alias_handle(name)
     if not len(setus):
-        setu = get_random_setu_of(name)
-        if not setu:
-            msg = f'no setu labeled for {name} currently'
-            msg += '\nfunction in building...'
-        else:
-            msg = MessageSegment.image(setu)
+        setu = get_random_setu(real_name)
+        errmsg = f'no setu labeled for {name} currently'
+        msg = MessageSegment.image(setu) if setu else errmsg
     else:
-        for s in setus:
-            save_setu_of(name, s)
+        for url in setus:
+            save_setu(url, real_name)
         msg = f'setu of {name} received'
     await session.send(msg)

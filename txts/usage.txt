@@ -1,6 +1,8 @@
 command supported:
-    setu
-    saying
-    sayingof xx
+    setu, setuof xx
+    saying, sayingof xx
+    comic
     sese
     来点xx
+
+问题或者建议可以at监护人

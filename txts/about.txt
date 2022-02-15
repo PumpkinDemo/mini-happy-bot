@@ -1,4 +1,4 @@
-无害小bot version 0.2.2
+无害小bot version 0.2.3
 
 Developed with nonebot
 监护人: DYH
