@@ -6,7 +6,6 @@ from nonebot import MessageSegment
 from nonebot import on_command, CommandSession
 
 
-SAYING_DIR = './sayings'
 SAYING_ABS_PATH = '/data/sayings'
 
 alias = {
@@ -16,7 +15,7 @@ alias = {
 }
 
 
-def saying_alias_handle(name):
+def saying_alias_resolve(name):
     return alias.get(name, name)
 
 
@@ -35,7 +34,7 @@ def save_saying(img_url, name=None):
     img_name = f'{t}.{ext}'
     if name:
         img_name = f'{name}_' + img_name
-    with open(f'{SAYING_DIR}/{img_name}', 'wb') as f:
+    with open(f'{SAYING_ABS_PATH}/{img_name}', 'wb') as f:
         f.write(r.content)
 
 
@@ -81,7 +80,7 @@ async def sayingof(session:CommandSession):
         return
         
     sayings = session.current_arg_images
-    real_name = saying_alias_handle(name)
+    real_name = saying_alias_resolve(name)
     if not len(sayings):
         saying = get_random_saying(real_name)
         errmsg = f'no saying labeled for {name} currently'

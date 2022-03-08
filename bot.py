@@ -3,19 +3,19 @@ from aiocqhttp import MessageSegment
 import nonebot
 from nonebot import on_command, CommandSession
 from nonebot import on_natural_language, NLPSession, IntentCommand
-from sympy import im
 import config
 import os
 import requests
 
-from plugins.saying import get_random_saying, saying_alias_handle
-from plugins.setu import get_random_setu, setu_alias_handle
+from plugins.saying import get_random_saying, saying_alias_resolve
+from plugins.setu import get_random_setu, setu_name_resolve
 
 # config = Config()
 
 HOST = '127.0.0.1'
-PORT = 5000
+PORT = 6000
 
+keyword_cnt = {}
 
 def get_bv_info(bv):
     api = 'api.bilibili.com/x/web-interface/view'
@@ -71,6 +71,7 @@ async def sese_nlp(session:NLPSession):
     return IntentCommand(100*random(), 'sese')
 
 
+
 @on_natural_language(keywords={'来点'}, only_to_me=False)
 async def some(session:NLPSession):
     msg = session.msg_text.strip()
@@ -80,6 +81,9 @@ async def some(session:NLPSession):
     if not key:
         await session.send('来点啥?')
         return
+    
+    # keyword_cnt[key] = keyword_cnt.get(key, 0) + 1
+
     if key in ['色色']:
         return
     if key in ['涩图', '色图', 'setu']:
@@ -88,13 +92,19 @@ async def some(session:NLPSession):
         return IntentCommand(80.0, 'saying')
     if key in ['comic', '漫画']:
         return IntentCommand(80.0, 'comic')
-    
-    saying = get_random_saying(saying_alias_handle(key))
+    if key in ['老婆', '老公']:
+        await session.send('醒醒，你没' + key)
+        return
+    if key in ['矮子']:
+        await session.send('不敬仙师!')
+        return
+
+    saying = get_random_saying(saying_alias_resolve(key))
     if saying:
         await session.send(MessageSegment.image(saying))
         return
     
-    setu = get_random_setu(setu_alias_handle(key))
+    setu = get_random_setu(setu_name_resolve(key))
     if setu:
         await session.send(MessageSegment.image(setu))
         return

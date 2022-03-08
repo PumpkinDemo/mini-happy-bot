@@ -1,11 +1,7 @@
-2022-02-15:
+2022-03-08:
 
-new command:
-    comic
-
-optimization:
-    code opt
+new feature:
+	simple tag support
 
 in building:
-    multiple tags
-    image deduplication
+	complex tag system

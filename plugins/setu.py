@@ -9,16 +9,20 @@ import yaml
 from hashlib import md5
 
 
-SETU_DIR = './setu'
 SETU_ABS_PATH = '/data/setu'
-SETU_ALIAS_PATH = './setu_alias.txt'
+SETU_ALIAS_PATH = './setu_alias.yml'
+SETU_TAGS_PATH = './setu_tags.yml'
 
 alias = {}
 alias_file_md5 = ''
 
+tags = {}
+tags_file_md5 = ''
+
 
 def get_setu_alias():
-    alias_path = './setu_alias.yml'
+    # alias_path = './setu_alias.yml'
+    alias_path = SETU_ALIAS_PATH
     if not os.path.exists(alias_path):
         os.system(f'touch {alias_path}')
     with open(alias_path, 'rb') as f:
@@ -29,15 +33,35 @@ def get_setu_alias():
     alias.clear()
     with open(alias_path, 'r') as f:
         data = yaml.safe_load(f)
-        for k in data.keys():
-            for v in data[k]:
-                alias[v] = k
-    print('alias update')
+    if not data:
+        data = {}
+    for k in data.keys():
+        for v in data[k]:
+            alias[v] = k
+    print('alias updated')
     return
 
 
+def get_setu_tags():
+    tags_file = SETU_TAGS_PATH
+    if not os.path.exists(tags_file):
+        os.system(f'touch {tags_file}')
+    with open(tags_file, 'rb') as f:
+        h = md5(f.read()).hexdigest()
+    if h == tags_file_md5:
+        return
+    globals()['tags_file_md5'] = h
+    with open(tags_file, 'r') as f:
+        data = yaml.safe_load(f)
+    if not data:
+        data = {}
+    tags.clear()
+    tags.update(data)
+    print('tags updated')
+
+
 def get_random_setu(name=None):
-    files = os.listdir(SETU_DIR)
+    files = os.listdir(SETU_ABS_PATH)
     if name:
         files = list(filter(lambda f:f.startswith(name+'_'), files))
     if not len(files):
@@ -53,7 +77,7 @@ def save_setu(img_url, name=None):
     setu_name = f'{t}.{ext}'
     if name:
         setu_name = f'{name}_' + setu_name
-    with open(f'{SETU_DIR}/{setu_name}', 'wb') as f:
+    with open(f'{SETU_ABS_PATH}/{setu_name}', 'wb') as f:
         f.write(r.content)
 
 
@@ -65,10 +89,28 @@ def name_check(name:str) -> bool:
     return True
 
 
-def setu_alias_handle(name:str):
+def setu_alias_resolve(name:str):
     get_setu_alias()
     return alias.get(name, name)
 
+
+def setu_tag_resolve(tag:str):
+    get_setu_tags()
+    names = tags.get(tag, [])
+    while names:
+        c = random.choice(names)
+        if get_random_setu(c):
+            return c
+        names.remove(c)
+    return tag
+
+
+def setu_name_resolve(name:str):
+    name1 = setu_alias_resolve(name)
+    if name1 != name:
+        return name1
+    return setu_tag_resolve(name)
+    
 
 @on_command('setupost', only_to_me=False)
 async def setupost(session:CommandSession):
@@ -112,7 +154,7 @@ async def setuof(session:CommandSession):
         return
     
     setus = session.current_arg_images
-    real_name = setu_alias_handle(name)
+    real_name = setu_alias_resolve(name)
     if not len(setus):
         setu = get_random_setu(real_name)
         errmsg = f'no setu labeled for {name} currently'
