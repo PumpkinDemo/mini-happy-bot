@@ -153,7 +153,13 @@ async def setuof(session:CommandSession):
         await session.send('invaliad name')
         return
     
+    get_setu_tags()
     setus = session.current_arg_images
+    if name in tags.keys():
+        msg = f'ambiguous keyword {name} for\n' + ', '.join(tags.get(name))
+        await session.send(msg)
+        return
+
     real_name = setu_alias_resolve(name)
     if not len(setus):
         setu = get_random_setu(real_name)

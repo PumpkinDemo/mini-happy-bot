@@ -85,7 +85,7 @@ async def some(session:NLPSession):
     # keyword_cnt[key] = keyword_cnt.get(key, 0) + 1
 
     if key in ['色色']:
-        return
+        return IntentCommand(80.0, 'sese')
     if key in ['涩图', '色图', 'setu']:
         return IntentCommand(80.0, 'setu')
     if key in ['语录', 'saying']:
@@ -125,7 +125,7 @@ async def label(session:CommandSession):
     print(session.event.message_id)
 
 
-@on_command('bili', only_to_me=False)
+# @on_command('bili', only_to_me=False)
 async def bili(session:CommandSession):
     bv = session.current_arg_text.strip()
     res = get_bv_info(bv)
@@ -145,3 +145,5 @@ if __name__ == '__main__':
     nonebot.load_plugin('plugins.setu')
     nonebot.load_plugin('plugins.comic')
     nonebot.run(host=HOST, port=PORT)
+
+
