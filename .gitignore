@@ -5,3 +5,5 @@ saying_table.txt
 .DS_Store
 __pycache__
 nohup.out
+.env
+dailyreport.sh

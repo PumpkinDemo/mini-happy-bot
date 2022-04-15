@@ -1,6 +1,10 @@
-2022-03-08:
+2022-03-28:
+
+setu viewer update:
+	add filter
 
 new feature:
+	some pinyin support
 	simple tag support
 
 in building:

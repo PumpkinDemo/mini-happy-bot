@@ -6,9 +6,11 @@ from nonebot import on_natural_language, NLPSession, IntentCommand
 import config
 import os
 import requests
-
 from plugins.saying import get_random_saying, saying_alias_resolve
 from plugins.setu import get_random_setu, setu_name_resolve
+from pypinyin import lazy_pinyin, Style
+from dotenv import load_dotenv
+
 
 # config = Config()
 
@@ -16,6 +18,7 @@ HOST = '127.0.0.1'
 PORT = 6000
 
 keyword_cnt = {}
+
 
 def get_bv_info(bv):
     api = 'api.bilibili.com/x/web-interface/view'
@@ -83,10 +86,12 @@ async def some(session:NLPSession):
         return
     
     # keyword_cnt[key] = keyword_cnt.get(key, 0) + 1
+    
+    key_pinyin = ''.join(lazy_pinyin(key, style=Style.NORMAL))
 
-    if key in ['色色']:
+    if key_pinyin == 'sese':
         return IntentCommand(80.0, 'sese')
-    if key in ['涩图', '色图', 'setu']:
+    if key_pinyin == 'setu':
         return IntentCommand(80.0, 'setu')
     if key in ['语录', 'saying']:
         return IntentCommand(80.0, 'saying')
@@ -95,9 +100,9 @@ async def some(session:NLPSession):
     if key in ['老婆', '老公']:
         await session.send('醒醒，你没' + key)
         return
-    if key in ['矮子']:
-        await session.send('不敬仙师!')
-        return
+    # if key in ['矮子']:
+        # await session.send('不敬仙师!')
+        # return
 
     saying = get_random_saying(saying_alias_resolve(key))
     if saying:
@@ -139,11 +144,13 @@ async def bili(session:CommandSession):
 
 
 if __name__ == '__main__':
+    load_dotenv()
     nonebot.init(config_object=config)
     # nonebot.load_builtin_plugins()
     nonebot.load_plugin('plugins.saying')
     nonebot.load_plugin('plugins.setu')
     nonebot.load_plugin('plugins.comic')
+    nonebot.load_plugin('plugins.cron')
     nonebot.run(host=HOST, port=PORT)
 
 
